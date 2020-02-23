@@ -1,0 +1,123 @@
+# coding: utf-8
+doc=App.ActiveDocument
+
+import Part
+import math
+import copy
+from FreeCAD import Base
+
+#
+RExtDyson = 17
+RIntDyson = 14
+LongDyson = 50
+DistGorge1 = 10
+DistGorge2 = 15
+DistGorge3 = 17
+RGorge = 30.5/2
+
+EpCentage = 2.8
+HCentage = 2
+DistCentrage1 = 37 
+DistCentrage2 = 43
+RButee = 22.5/2. + 2 
+LButee = 22.5
+EpButee= 2
+HauteurButee = 2
+
+RIntPonceuse= 61./2.
+RExtPonceuse= 69/2.
+RRaynure = 64/2.
+ProfRaynure = 11.5
+AngleRaynure = 40
+AngleEntreeRaynure = 7*180/(RRaynure*math.pi)
+LargeureRaynure = 5.2
+LongPonceuse = 20
+
+DistDysonToPonceuse= 30
+#
+TubeDyson=Part.makeCylinder(RExtDyson,LongDyson)
+TubeDyson=TubeDyson.cut(Part.makeCylinder(RIntDyson,LongDyson))
+    
+GorgeDyson=Part.makeCylinder(RExtDyson+2,DistGorge3)
+GorgeDyson=GorgeDyson.cut(Part.makeCylinder(RExtDyson+2,DistGorge1))
+GorgeDyson=GorgeDyson.cut(Part.makeCylinder(RGorge,DistGorge3))
+TubeDyson=TubeDyson.cut(GorgeDyson)
+
+Depouille= Part.makeCone(RGorge,RExtDyson,DistGorge3-DistGorge2,Base.Vector(0,0,DistGorge2),Base.Vector(0,0,1),360)
+#Part.show(Depouille)
+TubeDyson=TubeDyson.fuse(Depouille)
+
+# Design Butee
+Butee=Part.makeCylinder(RButee +EpButee + 3, RExtDyson + HauteurButee, Base.Vector(0,0,DistCentrage2-RButee),Base.Vector(0,1,0),360)
+Butee=Butee.cut(Part.makeCylinder(RButee, RExtDyson + HauteurButee, Base.Vector(0,0,DistCentrage2-RButee),Base.Vector(0,1,0),360))
+ChanfreinButee=Part.makeCone(RButee + EpButee/2.+RExtDyson,RButee+EpButee/2.,RExtDyson,Base.Vector(0,HauteurButee,DistCentrage2-RButee),Base.Vector(0,1,0),360)
+ChanfreinButee=Part.makeCylinder(RButee+EpButee+10,RExtDyson,Base.Vector(0,HauteurButee,DistCentrage2-RButee),Base.Vector(0,1,0),360).cut(ChanfreinButee)
+# Part.show(ChanfreinButee)
+Butee=Butee.cut(ChanfreinButee)
+LanguetteButee=Part.makeBox(EpButee,RExtDyson+4,DistCentrage2,Base.Vector(-EpButee/2.,0,0),Base.Vector(0,0,1))
+Butee=Butee.fuse(LanguetteButee)
+CutButee=Part.makeBox(DistCentrage1,DistCentrage1,DistCentrage1,Base.Vector(-DistCentrage1/2.,0,0),Base.Vector(0,0,1))
+Butee=Butee.cut(CutButee)
+TubeDyson=TubeDyson.fuse(Butee)
+#Part.show(Butee)
+
+# Coupe Butee
+CutButee=Part.makeCylinder(RExtDyson+10,LongDyson)
+CutButee=CutButee.cut(Part.makeCylinder(RExtDyson+EpButee,LongDyson))
+#Part.show(CutButee)
+
+# Ponceuse
+Ponceuse=Part.makeCylinder(RExtPonceuse,LongPonceuse,Base.Vector(0,0,DistDysonToPonceuse+LongDyson),Base.Vector(0,0,1),360)
+PonceuseCut=Part.makeCylinder(RIntPonceuse,LongPonceuse,Base.Vector(0,0,DistDysonToPonceuse+LongDyson),Base.Vector(0,0,1),360)
+Ponceuse=Ponceuse.cut(PonceuseCut)
+
+# Raynure
+Raynure1=Part.makeCylinder(RRaynure,LargeureRaynure,Base.Vector(0,0,DistDysonToPonceuse+LongDyson+LongPonceuse-ProfRaynure),Base.Vector(0,0,1),AngleRaynure)
+Raynure1=Raynure1.fuse(Part.makeCylinder(RRaynure,ProfRaynure,Base.Vector(0,0,DistDysonToPonceuse+LongDyson+LongPonceuse-ProfRaynure),Base.Vector(0,0,1),AngleEntreeRaynure))
+Raynure2=copy.copy(Raynure1)
+Raynure2.rotate(Base.Vector(0,0,0),Base.Vector(0,0,1),180)
+EndRaynure1=Part.makeCylinder(LargeureRaynure/2.,RRaynure+1,Base.Vector(0,0,DistDysonToPonceuse+LongDyson+LongPonceuse-ProfRaynure+LargeureRaynure/2.),Base.Vector(1,0,0),360)
+EndRaynure1.rotate(Base.Vector(0,0,0),Base.Vector(0,0,1),AngleRaynure)
+#EndRaynure1.rotate(Base.Vector(0,0,0),Base.Vector(0,0,1),0)
+EndRaynure2=copy.copy(EndRaynure1)
+EndRaynure2.rotate(Base.Vector(0,0,0),Base.Vector(0,0,1),180)
+Ponceuse=Ponceuse.cut(Raynure1)
+Ponceuse=Ponceuse.cut(EndRaynure1)
+Ponceuse=Ponceuse.cut(Raynure2)
+Ponceuse=Ponceuse.cut(EndRaynure2)
+#Part.show(Ponceuse)
+#Part.show(EndRaynure1)
+#Part.show(EndRaynure2)
+
+#Part.show(Raynure1)
+#Part.show(Raynure2)
+# Jonction Ponceuse Dyson
+Jonction=Part.makeCone(RExtDyson,RExtPonceuse,DistDysonToPonceuse,Base.Vector(0,0,LongDyson),Base.Vector(0,0,1),360)
+Jonction=Jonction.cut(Part.makeCone(RIntDyson,RIntPonceuse,DistDysonToPonceuse,Base.Vector(0,0,LongDyson),Base.Vector(0,0,1),360))
+#Part.show(Jonction)
+#Part.show(CutButee)
+TubeDyson=TubeDyson.cut(Part.makeCylinder(RIntDyson,LongDyson))
+TubeDyson=TubeDyson.cut(CutButee)
+TubeDyson=TubeDyson.fuse(Jonction)
+TubeDyson=TubeDyson.fuse(Ponceuse)
+
+Part.show(TubeDyson)
+
+#for line in txtFile:
+#
+#   row = line.split()
+#   XSphere=row[0]
+#   YSphere=row[1]
+#   ZSphere=row[2]
+#
+#   if float(ZSphere) <= 0.1 :
+#      A=Base.Vector(float(XSphere),float(YSphere),float(ZSphere))
+#      B=A*R
+#
+#      Led=Part.makeSphere(RLed,B,Base.Vector(0,0,1),90,360)
+#      Led=Part.makeSphere(RLed,B)
+#      ListLed.append(Led)
+#
+#for Led in ListLed:
+#    Part.show(Led)
+#
