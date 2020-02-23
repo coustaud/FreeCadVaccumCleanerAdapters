@@ -1,4 +1,4 @@
-# KicadVaccumCleanerAdapters
+# FreeCadVaccumCleanerAdapters
 
 EN:
 Kicad macro file to create an adapter between Dyson Vaccum Cleaner and AEG EX 125 ES sander
